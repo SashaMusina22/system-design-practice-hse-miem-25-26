@@ -42,13 +42,12 @@ services:
     haproxy:
         image: ${PATRONI_TEST_IMAGE:-patroni}
         networks: [ demo ]
-        env_file: patroni-master/docker/patroni.env
+        env_file: docker/patroni.env
         hostname: haproxy
         container_name: demo-haproxy
         ports:
-            - "5002:5000"
+            - "5000:5000"
             - "5001:5001"
-            - "7001:7000"
         command: haproxy
         environment: &haproxy_env
             ETCDCTL_ENDPOINTS: http://etcd1:2379,http://etcd2:2379,http://etcd3:2379
@@ -58,7 +57,7 @@ services:
     patroni1:
         image: ${PATRONI_TEST_IMAGE:-patroni}
         networks: [ demo ]
-        env_file: patroni-master/docker/patroni.env
+        env_file: docker/patroni.env
         hostname: patroni1
         container_name: demo-patroni1
         environment:
@@ -68,7 +67,7 @@ services:
     patroni2:
         image: ${PATRONI_TEST_IMAGE:-patroni}
         networks: [ demo ]
-        env_file: patroni-master/docker/patroni.env
+        env_file: docker/patroni.env
         hostname: patroni2
         container_name: demo-patroni2
         environment:
@@ -78,47 +77,9 @@ services:
     patroni3:
         image: ${PATRONI_TEST_IMAGE:-patroni}
         networks: [ demo ]
-        env_file: patroni-master/docker/patroni.env
+        env_file: docker/patroni.env
         hostname: patroni3
         container_name: demo-patroni3
         environment:
             <<: *haproxy_env
             PATRONI_NAME: patroni3
-
-    prometheus:
-        image: prom/prometheus:latest
-        networks: [ demo ]
-        volumes:
-            - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-            - prometheus_data:/prometheus
-        ports:
-            - "9090:9090"
-        command:
-            - '--config.file=/etc/prometheus/prometheus.yml'
-            - '--storage.tsdb.path=/prometheus'
-            - '--web.console.libraries=/etc/prometheus/console_libraries'
-            - '--web.console.templates=/etc/prometheus/consoles'
-            - '--web.enable-lifecycle' # Allows config reloads without restart
-            - '--web.enable-remote-write-receiver' # Enables remote write endpoint for k6
-    
-    grafana:
-        image: grafana/grafana:9.0.0
-        networks: [ demo ]
-        ports:
-            - "3000:3000"
-        volumes:
-            - grafana_data:/var/lib/grafana
-        depends_on:
-            - prometheus
-
-    postgres_exporter:
-        image: prometheuscommunity/postgres-exporter:v0.15.0
-        networks: [ demo ]
-        environment:
-            DATA_SOURCE_NAME: "postgresql://postgres:postgres@haproxy:5000/postgres?sslmode=disable"
-        ports:
-            - "9187:9187"
-
-volumes:
-  prometheus_data:
-  grafana_data:
