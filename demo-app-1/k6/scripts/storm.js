@@ -3,9 +3,9 @@ import { check, sleep } from 'k6';
 
 export let options = {
   stages: [
-    { duration: '10s', target: 1000 }, // резкий рост
-    { duration: '20s', target: 1000 }, // держим пик
-    { duration: '10s', target: 0 },    // резкое падение
+    { duration: '30s', target: 2000 },
+    { duration: '3m', target: 2000 },
+    { duration: '1m', target: 0 },
   ],
 };
 
@@ -22,6 +22,6 @@ export default function() {
     const res = http.get('http://localhost:8080/api/orders');
     check(res, { 'list ok': (r) => r.status === 200 });
   }
-  sleep(0.05);
+  sleep(0.01);
 }
 
